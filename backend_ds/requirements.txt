@@ -6,3 +6,4 @@ transformers
 pillow
 opencv-python
 python-multipart
+python-docx

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DeepSeek-OCR 古迹识别</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .preview-area {
+            margin: 20px 0;
+            text-align: center;
+        }
+        #preview {
+            max-width: 100%;
+            max-height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .result-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #loading {
+            display: none;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>DeepSeek-OCR 古迹识别</h2>
+        
+        <input type="file" id="img" accept="image/*" onchange="previewImage(event)">
+        
+        <div class="preview-area">
+            <img id="preview" style="display:none;" alt="图片预览">
+        </div>
+        
+        <button onclick="upload()">识别</button>
+        <div id="loading">识别中，请稍候...</div>
+        
+        <div class="result-area">
+            <strong>识别结果：</strong>
+            <pre id="result" style="margin-top: 10px; white-space: pre-wrap;"></pre>
+        </div>
+    </div>
+
+    <script>
+        // 图片预览函数
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+                preview.src = '';
+            }
+        }
+
+        // 上传识别函数
+        async function upload() {
+            const fileInput = document.getElementById('img');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择一张图片！');
+                return;
+            }
+            
+            const form = new FormData();
+            form.append("file", file);
+            
+            // 显示加载状态
+            const loadingDiv = document.getElementById('loading');
+            const resultPre = document.getElementById('result');
+            loadingDiv.style.display = 'block';
+            resultPre.innerText = '识别中...';
+            
+            try {
+                // 替换成你的 PAI-DSW 后端转发地址
+                const ocrRes = await fetch("https://dsw-gateway-cn-shanghai.data.aliyun.com/dsw-752736/ide/proxy/8000/ocr", {
+                    method: "POST",
+                    body: form
+                });
+                
+                const ocrData = await ocrRes.json();
+                //console.log("返回的数据：", data);  // 调试用
+                
+                //调用evaluate
+                const evalRes=await fetch("https://dsw-gateway-cn-shanghai.data.aliyun.com/dsw-752736/ide/proxy/8000/evaluate",{
+                    method:"POST"
+                });
+
+                const evalData=await evalRes.json();
+
+                // 显示结果
+                // if (data.text) {
+                //     resultPre.innerText = data.text;
+                // } else if (data.result) {
+                //     resultPre.innerText = data.result;
+                // } else {
+                //     resultPre.innerText = JSON.stringify(data, null, 2);
+                // }
+
+                resultPre.innerText = "识别结果: \n"+(ocrData.text ||  "无内容")+"\n\n准确率: "+(evalData.similarity*100).toFixed(2)+"%"+"\n误差率: "+(evalData.error_rate*100).toFixed(2)+"%";
+            } catch (err) {
+                //console.error('上传失败：', error);
+                resultPre.innerText = '错误：' + err.message;
+            } 
+                loadingDiv.style.display = 'none';
+            
+        }
+    </script>
+</body>
+</html>

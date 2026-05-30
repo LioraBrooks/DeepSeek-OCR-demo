@@ -90,6 +90,21 @@
             }
         }
 
+        async function readJsonResponse(response, apiName) {
+            const contentType = response.headers.get('content-type') || '';
+            const bodyText = await response.text();
+
+            if (!contentType.includes('application/json')) {
+                throw new Error(`${apiName} 返回了非 JSON 响应，HTTP ${response.status}：${bodyText.slice(0, 120)}`);
+            }
+
+            const data = JSON.parse(bodyText);
+            if (!response.ok || data.error) {
+                throw new Error(`${apiName} 调用失败：${data.error || response.statusText}`);
+            }
+            return data;
+        }
+
         // 上传识别函数
         async function upload() {
             const fileInput = document.getElementById('img');
@@ -116,7 +131,7 @@
                     body: form
                 });
                 
-                const ocrData = await ocrRes.json();
+                const ocrData = await readJsonResponse(ocrRes, 'OCR');
                 //console.log("返回的数据：", data);  // 调试用
                 
                 //调用evaluate
@@ -124,7 +139,7 @@
                     method:"POST"
                 });
 
-                const evalData=await evalRes.json();
+                const evalData=await readJsonResponse(evalRes, '评估');
 
                 // 显示结果
                 // if (data.text) {

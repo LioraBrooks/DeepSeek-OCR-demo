@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OCR Demo</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+    .row { margin: 12px 0; }
+    pre { white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 8px; }
+    button { padding: 8px 14px; }
+  </style>
+</head>
+<body>
+  <h2>古迹图片识别(OCR Demo)</h2>
+
+  <div class="row">
+    <input type="file" id="img" accept="image/*" />
+    <button onclick="run()">识别</button>
+  </div>
+
+  <div class="row">
+    <pre id="out">等待上传图片…</pre>
+  </div>
+
+  <script>
+    async function run() 
+    {
+      const file = document.getElementById("img").files[0];
+      if (!file) return;
+
+      const out = document.getElementById("out");
+      out.textContent = "识别中…";
+
+      const form = new FormData();
+      form.append("file", file);
+
+      try
+      {
+      const res = await fetch("api/ocr", { method: "POST", body: form });
+
+      if(!res.ok)
+      {
+        throw new Error(`服务器响应异常:${res.status}`);
+      }
+      const data = await res.json();
+
+      out.textContent = data.ok ? data.text +"\n\n精度:"+data.accuracy+"\n\n错误率:"+data.error_rate: ("识别失败：" + data.error);
+      }
+      catch(err)
+      {
+        console.error(err);
+        out.textContent="请求发送失败:"+err.message+"。请确认后端服务已启动且地址正确。";
+      }
+      
+    }
+  </script>
+</body>
+</html>

@@ -4,3 +4,5 @@ uploads/
 outputs/history/
 models/
 DeepSeek-OCR-src/
+ground_truth/
+backend_qwen/

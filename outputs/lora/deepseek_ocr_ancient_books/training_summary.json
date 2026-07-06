@@ -1,0 +1,19 @@
+{
+  "train_records": 2,
+  "val_records": 1,
+  "epochs": 1,
+  "steps": 2,
+  "mean_train_loss": 2.9521437883377075,
+  "elapsed_seconds": 5.0,
+  "output_dir": "/mnt/workspace/deepseek_ocr_demo/outputs/lora/deepseek_ocr_ancient_books",
+  "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj"
+  ],
+  "lora_r": 8,
+  "lora_alpha": 16,
+  "lora_dropout": 0.05,
+  "learning_rate": 0.0001
+}

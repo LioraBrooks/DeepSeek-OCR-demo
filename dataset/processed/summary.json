@@ -1,0 +1,18 @@
+{
+  "images_dir": "/mnt/workspace/deepseek_ocr_demo/dataset/images",
+  "ground_truth_dir": "/mnt/workspace/deepseek_ocr_demo/dataset/ground_truth",
+  "output_dir": "/mnt/workspace/deepseek_ocr_demo/dataset/processed",
+  "image_count": 66,
+  "docx_count": 66,
+  "paired_count": 66,
+  "usable_count": 66,
+  "train_count": 52,
+  "val_count": 6,
+  "test_count": 8,
+  "missing_docx_count": 0,
+  "missing_image_count": 0,
+  "skipped_empty_count": 0,
+  "missing_docx": [],
+  "missing_images": [],
+  "skipped_empty": []
+}

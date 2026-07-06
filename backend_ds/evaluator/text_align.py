@@ -1,16 +1,33 @@
-#自动对齐
+# 自动对齐与文本归一化
 
 import re
+import unicodedata
 from difflib import SequenceMatcher
 
 
-def normalize_text(text):
-    """去掉空白字符，避免换行和段落格式影响 OCR 评分。"""
-    return re.sub(r"\s+", "", text or "")
+CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+
+
+def normalize_text(text, mode="plain"):
+    """Normalize OCR/GT text before scoring.
+
+    mode="plain": remove whitespace and common layout/markdown noise.
+    mode="hanzi": keep only CJK ideographs, ignoring punctuation/layout marks.
+    """
+    text = unicodedata.normalize("NFKC", text or "")
+    text = re.sub(r"!\[[^\]]*\]\([^)]+\)", "", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = text.replace("**", "").replace("#", "")
+
+    if mode == "hanzi":
+        return "".join(CJK_RE.findall(text))
+
+    text = re.sub(r"\s+", "", text)
+    return text
 
 
 def find_best_match(ocr_text, full_text, step=1):
-    """在全文中找到与 OCR 文本最相似的片段。"""
+    """Find the most similar same-length passage in a full reference text."""
     ocr_text = normalize_text(ocr_text)
     full_text = normalize_text(full_text)
     ocr_len = len(ocr_text)

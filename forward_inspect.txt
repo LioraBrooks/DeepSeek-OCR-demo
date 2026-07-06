@@ -1,0 +1,281 @@
+Model dir: /mnt/workspace/deepseek_ocr_demo/DeepSeek-OCR-model
+
+================================================================================
+Loading Tokenizer
+================================================================================
+Tokenizer class: LlamaTokenizerFast
+Tokenizer source: /usr/local/lib/python3.12/site-packages/transformers/models/llama/tokenization_llama_fast.py
+pad_token: <｜▁pad▁｜> pad_token_id: 2
+eos_token: <｜end▁of▁sentence｜> eos_token_id: 1
+bos_token: <｜begin▁of▁sentence｜> bos_token_id: 0
+
+================================================================================
+Loading Model
+================================================================================
+Model class: DeepseekOCRForCausalLM
+Model source: /root/.cache/huggingface/modules/transformers_modules/DeepSeek-OCR-model/modeling_deepseekocr.py
+Config class: DeepseekOCRConfig
+Interesting config keys:
+{
+  "vocab_size": 129280,
+  "hidden_size": 1280,
+  "num_hidden_layers": 12,
+  "moe_layer_freq": 1,
+  "hidden_act": "silu",
+  "output_hidden_states": false,
+  "cross_attention_hidden_size": null,
+  "forced_bos_token_id": null,
+  "forced_eos_token_id": null,
+  "suppress_tokens": null,
+  "begin_suppress_tokens": null,
+  "tokenizer_class": null,
+  "bos_token_id": 0,
+  "pad_token_id": null,
+  "eos_token_id": 1,
+  "sep_token_id": null,
+  "decoder_start_token_id": null,
+  "model_type": "DeepseekOCR",
+  "vision_config": {
+    "image_size": 1024,
+    "mlp_ratio": 3.7362,
+    "model_name": "deeplip_b_l",
+    "model_type": "vision",
+    "width": {
+      "clip-l-14-224": {
+        "heads": 16,
+        "image_size": 224,
+        "layers": 24,
+        "patch_size": 14,
+        "width": 1024
+      },
+      "sam_vit_b": {
+        "downsample_channels": [
+          512,
+          1024
+        ],
+        "global_attn_indexes": [
+          2,
+          5,
+          8,
+          11
+        ],
+        "heads": 12,
+        "layers": 12,
+        "width": 768
+      }
+    }
+  }
+}
+
+================================================================================
+Core Signatures
+================================================================================
+model.forward: (input_ids: torch.LongTensor = None, attention_mask: Optional[torch.Tensor] = None, position_ids: Optional[torch.LongTensor] = None, past_key_values: Optional[List[torch.FloatTensor]] = None, inputs_embeds: Optional[torch.FloatTensor] = None, labels: Optional[torch.LongTensor] = None, use_cache: Optional[bool] = None, output_attentions: Optional[bool] = None, output_hidden_states: Optional[bool] = None, images: Optional[torch.FloatTensor] = None, images_seq_mask: Optional[torch.FloatTensor] = None, images_spatial_crop: Optional[torch.FloatTensor] = None, return_dict: Optional[bool] = None) -> Union[Tuple, transformers.modeling_outputs.CausalLMOutputWithPast]
+model.infer: (tokenizer, prompt='', image_file='', output_path='', base_size=1024, image_size=640, crop_mode=True, test_compress=False, save_results=False, eval_mode=False)
+model.generate: (inputs: Optional[torch.Tensor] = None, generation_config: Optional[transformers.generation.configuration_utils.GenerationConfig] = None, logits_processor: Optional[transformers.generation.logits_process.LogitsProcessorList] = None, stopping_criteria: Optional[transformers.generation.stopping_criteria.StoppingCriteriaList] = None, prefix_allowed_tokens_fn: Optional[Callable[[int, torch.Tensor], List[int]]] = None, synced_gpus: Optional[bool] = None, assistant_model: Optional[ForwardRef('PreTrainedModel')] = None, streamer: Optional[ForwardRef('BaseStreamer')] = None, negative_prompt_ids: Optional[torch.Tensor] = None, negative_prompt_attention_mask: Optional[torch.Tensor] = None, **kwargs) -> Union[transformers.generation.utils.GenerateDecoderOnlyOutput, transformers.generation.utils.GenerateEncoderDecoderOutput, transformers.generation.utils.GenerateBeamDecoderOnlyOutput, transformers.generation.utils.GenerateBeamEncoderDecoderOutput, torch.LongTensor]
+
+================================================================================
+Forward Source Preview
+================================================================================
+    def forward(
+        self,
+        input_ids: torch.LongTensor = None,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_ids: Optional[torch.LongTensor] = None,
+        past_key_values: Optional[List[torch.FloatTensor]] = None,
+        inputs_embeds: Optional[torch.FloatTensor] = None,
+        labels: Optional[torch.LongTensor] = None,
+        use_cache: Optional[bool] = None,
+        output_attentions: Optional[bool] = None,
+        output_hidden_states: Optional[bool] = None,
+        images: Optional[torch.FloatTensor] = None,
+        images_seq_mask: Optional[torch.FloatTensor] = None,
+        images_spatial_crop: Optional[torch.FloatTensor] = None,
+        return_dict: Optional[bool] = None,
+        
+    ) -> Union[Tuple, CausalLMOutputWithPast]:
+        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_hidden_states = (
+            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        )
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+
+
+
+        outputs  = self.model(
+            input_ids=input_ids,
+            past_key_values=past_key_values,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+            inputs_embeds=inputs_embeds,
+            use_cache=use_cache,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            images=images,
+            images_seq_mask = images_seq_mask,
+            images_spatial_crop = images_spatial_crop,
+            return_dict=return_dict
+            
+        )
+
+
+        
+        # print(transformer_outputs)
+
+        hidden_states = outputs[0]
+        logits = self.lm_head(hidden_states)
+        logits = logits.float()
+
+        # logits
+
+        loss = None
+        if labels is not None:
+            # Shift so that tokens < n predict n
+            shift_logits = logits[..., :-1, :].contiguous()
+            shift_labels = labels[..., 1:].contiguous()
+            # Flatten the tokens
+            loss_fct = CrossEntropyLoss()
+            shift_logits = shift_logits.view(-1, self.config.vocab_size)
+            shift_labels = shift_labels.view(-1)
+            # Enable model parallelism
+            shift_labels = shift_labels.to(shift_logits.device)
+            loss = loss_fct(shift_logits, shift_labels)
+
+        if not return_dict:
+            output = (logits,) + outputs[1:]
+            return (loss,) + output if loss is not None else output
+
+        return CausalLMOutputWithPast(
+            loss=loss,
+            logits=logits,
+            past_key_values=outputs.past_key_values,
+            hidden_states=outputs.hidden_states,
+            attentions=outputs.attentions,
+        )
+
+================================================================================
+Infer Source Preview
+================================================================================
+    def infer(self, tokenizer, prompt='', image_file='', output_path = '', base_size=1024, image_size=640, crop_mode=True, test_compress=False, save_results=False, eval_mode=False):
+        self.disable_torch_init()
+
+        os.makedirs(output_path, exist_ok=True)
+        os.makedirs(f'{output_path}/images', exist_ok=True)
+
+        if prompt and image_file:
+            conversation = [
+                {
+                    "role": "<|User|>",
+                    # "content": "<image>\n<|grounding|>Given the layout of the image. ",
+                    "content": f'{prompt}',
+                    # "content": "君不见黄河之水天上来的下一句是什么？",
+                    # "content": "<image>\nFree OCR. ",
+                    # "content": "<image>\nParse the figure. ",
+                    # "content": "<image>\nExtract the text in the image. ",
+                    "images": [f'{image_file}'],
+                },
+                {"role": "<|Assistant|>", "content": ""},
+            ]
+        
+        elif prompt:
+            conversation = [
+                {
+                    "role": "<|User|>",
+                    # "content": "<image>\n<|grounding|>Given the layout of the image. ",
+                    "content": f'{prompt}',
+                    # "content": "君不见黄河之水天上来的下一句是什么？",
+                    # "content": "<image>\nFree OCR. ",
+                    # "content": "<image>\nParse the figure. ",
+                    # "content": "<image>\nExtract the text in the image. ",
+                    # "images": [f'{image_file}'],
+                },
+                {"role": "<|Assistant|>", "content": ""},
+            ]
+        else:
+            assert False, f'prompt is none!'
+        
+        prompt = format_messages(conversations=conversation, sft_format='plain', system_prompt='')
+
+        patch_size = 16
+        downsample_ratio = 4
+        images = load_pil_images(conversation)
+
+        valid_img_tokens = 0
+        ratio = 1
+
+        image_draw = images[0].copy()
+
+        w,h = image_draw.size
+        # print(w, h)
+        ratio = 1 - ((max(w, h) - min(w, h)) / (max(w, h)))
+    
+
+        image_transform=BasicImageTransform(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5), normalize=True)
+        images_seq_mask = []
+
+        image_token = '<image>'
+        image_token_id = 128815
+        text_splits = prompt.split(image_token)
+
+        images_list, images_crop_list, images_seq_mask = [], [], []
+        tokenized_str = []
+        images_spatial_crop = []
+        for text_sep, image in zip(text_splits, images):
+
+            tokenized_sep = text_encode(tokenizer, text_sep, bos=False, eos=False)
+            tokenized_str += tokenized_sep
+            images_seq_mask += [False] * len(tokenized_sep)
+
+            if crop_mode:
+
+                if image.size[0] <= 640 and image.size[1] <= 640:
+                    crop_ratio = [1, 1]
+
+                else:
+                    if crop_mode:
+                        # best_width, best_height = select_best_resolution(image.size, self.candidate_resolutions)
+                        images_crop_raw, crop_ratio = dynamic_preprocess(image)
+                    else:
+
+================================================================================
+Interesting Callable Methods
+================================================================================
+_get_resized_embeddings: (old_embeddings: torch.nn.modules.sparse.Embedding, new_num_tokens: Optional[int] = None, pad_to_multiple_of: Optional[int] = None, mean_resizing: bool = True) -> torch.nn.modules.sparse.Embedding
+_hook_rss_memory_post_forward: (module, *args, **kwargs)
+_hook_rss_memory_pre_forward: (module, *args, **kwargs)
+_init_added_embeddings_weights_with_mean: (old_embeddings, new_embeddings, old_embedding_dim, old_num_tokens, added_num_tokens)
+_prepare_attention_mask_for_generation: (inputs: torch.Tensor, pad_token_id: Optional[torch.Tensor], eos_token_id: Optional[torch.Tensor]) -> torch.LongTensor
+_prepare_cache_for_generation: (generation_config: transformers.generation.configuration_utils.GenerationConfig, model_kwargs: Dict, assistant_model: 'PreTrainedModel', batch_size: int, max_cache_length: int, device: torch.device) -> bool
+_prepare_decoder_input_ids_for_generation: (batch_size: int, model_input_name: str, model_kwargs: Dict[str, torch.Tensor], decoder_start_token_id: torch.Tensor, device: torch.device = None) -> Tuple[torch.LongTensor, Dict[str, torch.Tensor]]
+_prepare_encoder_decoder_kwargs_for_generation: (inputs_tensor: torch.Tensor, model_kwargs, model_input_name: Optional[str], generation_config: transformers.generation.configuration_utils.GenerationConfig) -> Dict[str, Any]
+_prepare_generated_length: (generation_config, has_default_max_length, has_default_min_length, model_input_name, input_ids_length, inputs_tensor)
+_prepare_generation_config: (generation_config: Optional[transformers.generation.configuration_utils.GenerationConfig], **kwargs: Dict) -> Tuple[transformers.generation.configuration_utils.GenerationConfig, Dict]
+_prepare_model_inputs: (inputs: Optional[torch.Tensor] = None, bos_token_id: Optional[torch.Tensor] = None, model_kwargs: Optional[Dict[str, torch.Tensor]] = None) -> Tuple[torch.Tensor, Optional[str], Dict[str, torch.Tensor]]
+_prepare_special_tokens: (generation_config: transformers.generation.configuration_utils.GenerationConfig, kwargs_has_attention_mask: Optional[bool] = None, device: Union[torch.device, str, NoneType] = None)
+_resize_token_embeddings: (new_num_tokens, pad_to_multiple_of=None, mean_resizing=True)
+_slow_forward: (*input, **kwargs)
+_tie_encoder_decoder_weights: (encoder: torch.nn.modules.module.Module, decoder: torch.nn.modules.module.Module, base_model_prefix: str, base_encoder_name: str)
+_validate_generated_length: (generation_config, input_ids_length, has_default_max_length)
+can_generate: () -> bool
+estimate_tokens: (input_dict: Dict[str, Union[torch.Tensor, Any]]) -> int
+forward: (input_ids: torch.LongTensor = None, attention_mask: Optional[torch.Tensor] = None, position_ids: Optional[torch.LongTensor] = None, past_key_values: Optional[List[torch.FloatTensor]] = None, inputs_embeds: Optional[torch.FloatTensor] = None, labels: Optional[torch.LongTensor] = None, use_cache: Optional[bool] = None, output_attentions: Optional[bool] = None, output_hidden_states: Optional[bool] = None, images: Optional[torch.FloatTensor] = None, images_seq_mask: Optional[torch.FloatTensor] = None, images_spatial_crop: Optional[torch.FloatTensor] = None, return_dict: Optional[bool] = None) -> Union[Tuple, transformers.modeling_outputs.CausalLMOutputWithPast]
+generate: (inputs: Optional[torch.Tensor] = None, generation_config: Optional[transformers.generation.configuration_utils.GenerationConfig] = None, logits_processor: Optional[transformers.generation.logits_process.LogitsProcessorList] = None, stopping_criteria: Optional[transformers.generation.stopping_criteria.StoppingCriteriaList] = None, prefix_allowed_tokens_fn: Optional[Callable[[int, torch.Tensor], List[int]]] = None, synced_gpus: Optional[bool] = None, assistant_model: Optional[ForwardRef('PreTrainedModel')] = None, streamer: Optional[ForwardRef('BaseStreamer')] = None, negative_prompt_ids: Optional[torch.Tensor] = None, negative_prompt_attention_mask: Optional[torch.Tensor] = None, **kwargs) -> Union[transformers.generation.utils.GenerateDecoderOnlyOutput, transformers.generation.utils.GenerateEncoderDecoderOutput, transformers.generation.utils.GenerateBeamDecoderOnlyOutput, transformers.generation.utils.GenerateBeamEncoderDecoderOutput, torch.LongTensor]
+get_input_embeddings: ()
+get_output_embeddings: ()
+get_position_embeddings: () -> Union[torch.nn.modules.sparse.Embedding, Tuple[torch.nn.modules.sparse.Embedding]]
+heal_tokens: (input_ids: torch.LongTensor, tokenizer: Optional[ForwardRef('PreTrainedTokenizerBase')] = None) -> torch.LongTensor
+infer: (tokenizer, prompt='', image_file='', output_path='', base_size=1024, image_size=640, crop_mode=True, test_compress=False, save_results=False, eval_mode=False)
+loss_function: (logits, labels, vocab_size: int, num_items_in_batch: int = None, ignore_index: int = -100, **kwargs)
+prepare_inputs_for_generation: (input_ids, past_key_values=None, attention_mask=None, inputs_embeds=None, **kwargs)
+register_forward_hook: (hook: Union[Callable[[~T, Tuple[Any, ...], Any], Optional[Any]], Callable[[~T, Tuple[Any, ...], Dict[str, Any], Any], Optional[Any]]], *, prepend: bool = False, with_kwargs: bool = False, always_call: bool = False) -> torch.utils.hooks.RemovableHandle
+register_forward_pre_hook: (hook: Union[Callable[[~T, Tuple[Any, ...]], Optional[Any]], Callable[[~T, Tuple[Any, ...], Dict[str, Any]], Optional[Tuple[Any, Dict[str, Any]]]]], *, prepend: bool = False, with_kwargs: bool = False) -> torch.utils.hooks.RemovableHandle
+resize_position_embeddings: (new_num_position_embeddings: int)
+resize_token_embeddings: (new_num_tokens: Optional[int] = None, pad_to_multiple_of: Optional[int] = None, mean_resizing: bool = True) -> torch.nn.modules.sparse.Embedding
+set_input_embeddings: (value)
+set_output_embeddings: (new_embeddings)
+
+================================================================================
+Named Child Modules
+================================================================================
+model	DeepseekOCRModel	params=3170627840
+lm_head	Linear	params=165478400

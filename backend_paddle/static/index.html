@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PaddleOCR 古籍识别</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .preview-area {
+            margin: 20px 0;
+            text-align: center;
+        }
+        #preview {
+            max-width: 100%;
+            max-height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .result-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #888;
+            cursor: not-allowed;
+        }
+        #loading {
+            display: none;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>PaddleOCR 古籍识别</h2>
+
+        <input type="file" id="img" accept="image/*" onchange="previewImage(event)">
+
+        <div class="preview-area">
+            <img id="preview" style="display:none;" alt="图片预览">
+        </div>
+
+        <button id="uploadBtn" onclick="upload()">识别并评估</button>
+        <div id="loading">识别中，请稍候...</div>
+
+        <div class="result-area">
+            <strong>识别结果：</strong>
+            <pre id="result" style="margin-top: 10px; white-space: pre-wrap;"></pre>
+        </div>
+    </div>
+
+    <script>
+        function apiUrl(path) {
+            const cleanPath = path.replace(/^\/+/, "");
+            let base = window.location.href.split("#")[0].split("?")[0];
+
+            if (base.endsWith("/static/index.html")) {
+                base = base.slice(0, -"static/index.html".length);
+            } else if (!base.endsWith("/")) {
+                base = base.slice(0, base.lastIndexOf("/") + 1);
+            }
+
+            return new URL(cleanPath, base).toString();
+        }
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById("preview");
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = "none";
+                preview.src = "";
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function readJsonResponse(response, apiName) {
+            const contentType = response.headers.get("content-type") || "";
+            const bodyText = await response.text();
+
+            if (!contentType.includes("application/json")) {
+                throw new Error(`${apiName} 返回了非 JSON 响应，HTTP ${response.status}：${bodyText.slice(0, 160)}`);
+            }
+
+            const data = JSON.parse(bodyText);
+            if (!response.ok || data.error) {
+                const detail = data.error_type ? `${data.error_type}: ${data.error}` : data.error;
+                throw new Error(`${apiName} 调用失败：${detail || response.statusText}`);
+            }
+            return data;
+        }
+
+        async function pollOcrJob(jobId, resultPre) {
+            const maxAttempts = 180;
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                await sleep(1000);
+
+                const statusRes = await fetch(apiUrl(`ocr/status/${jobId}`));
+                const statusData = await readJsonResponse(statusRes, "OCR状态");
+
+                if (statusData.status === "done") {
+                    return statusData;
+                }
+                if (statusData.status === "error") {
+                    const detail = statusData.error_type ? `${statusData.error_type}: ${statusData.error}` : statusData.error;
+                    throw new Error(detail || "OCR后台任务失败");
+                }
+
+                const elapsed = statusData.elapsed_seconds ?? attempt;
+                resultPre.innerText = `识别任务 ${statusData.status}，已等待 ${elapsed} 秒...`;
+            }
+
+            throw new Error("OCR任务等待超时，请查看后端终端是否仍在运行");
+        }
+
+        async function upload() {
+            const fileInput = document.getElementById("img");
+            const file = fileInput.files[0];
+            const loadingDiv = document.getElementById("loading");
+            const resultPre = document.getElementById("result");
+            const uploadBtn = document.getElementById("uploadBtn");
+
+            if (!file) {
+                alert("请先选择一张图片！");
+                return;
+            }
+
+            const form = new FormData();
+            form.append("file", file);
+
+            loadingDiv.style.display = "block";
+            uploadBtn.disabled = true;
+            resultPre.innerText = "正在提交识别任务...";
+
+            try {
+                const ocrRes = await fetch(apiUrl("ocr"), {
+                    method: "POST",
+                    body: form
+                });
+
+                const startData = await readJsonResponse(ocrRes, "OCR");
+                const ocrData = await pollOcrJob(startData.job_id, resultPre);
+
+                resultPre.innerText = "识别完成，正在计算准确率...";
+
+                const evalRes = await fetch(apiUrl("evaluate"), {
+                    method: "POST"
+                });
+                const evalData = await readJsonResponse(evalRes, "评估");
+
+                resultPre.innerText =
+                    "识别结果: \n" + (ocrData.text || "无内容") +
+                    "\n\n汉字准确率: " + (evalData.accuracy * 100).toFixed(2) + "%" +
+                    "\n汉字误差率: " + (evalData.error_rate * 100).toFixed(2) + "%" +
+                    "\n严格相似度: " + (evalData.strict_similarity * 100).toFixed(2) + "%" +
+                    "\nOCR汉字数/原文汉字数: " + evalData.ocr_hanzi_count + "/" + evalData.gt_hanzi_count +
+                    "\n评估文件: " + evalData.gt_file;
+            } catch (err) {
+                resultPre.innerText = "错误：" + err.message;
+            } finally {
+                loadingDiv.style.display = "none";
+                uploadBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

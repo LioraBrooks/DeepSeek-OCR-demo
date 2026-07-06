@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "total": 3,
+    "baseline_mean_accuracy": 0.0374,
+    "lora_mean_accuracy": 0.0331,
+    "baseline_mean_hanzi_similarity": 0.0601,
+    "lora_mean_hanzi_similarity": 0.0611,
+    "baseline_mean_strict_similarity": 0.0485,
+    "lora_mean_strict_similarity": 0.0545
+  },
+  "results": [
+    {
+      "index": 0,
+      "image": "dataset/images/树人堂读杜诗_页面_020.jpg",
+      "ground_truth": "dataset/ground_truth/树人堂读杜诗_页面_020.docx",
+      "baseline": {
+        "prediction": "000七回 遣典 000七回 遣典\n雨過藍端 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典\n至德 000七回 遣典 000七回 遣典\n鄭驍馬地室同欲\n至德 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典\n至德 000七回 遣典 000七回 遣典\n送徐延章許書 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典 000七回 遣典\n至德 000七回 遣典 000七回 遣典 000七回 遣典\n送鄱州安南 000七回 遣典 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典 000七回 遣典",
+        "metrics": {
+          "accuracy": 0.0488,
+          "error_rate": 0.9512,
+          "hanzi_similarity": 0.1037,
+          "strict_similarity": 0.0773,
+          "punctuation_sensitive_error_rate": 0.9227,
+          "ocr_hanzi_count": 142,
+          "gt_hanzi_count": 205
+        }
+      },
+      "lora": {
+        "prediction": "0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0001\n0000 0000 0000 0000 0000 0000 0000 0000 0000 0001 0000 0000 0000 0000 0000\n0000 0000 0000 0000 0000 0000 0000 0000 0000 0002 0000 0000 0000 0000 0000\n0000 0000 0000 0000 0000 0000 0000 0000 0000 0003 0000 0000 0000 0000 0000\n0000 0000 0000 0000 0000 0000 0000 0000 0000 0004 0000 0000 0000 0000 0000\n0000 0000 0000 0000 0000 0000 0000 0000 0000 0005 0000 0000 0000 0000 0000\n0000 0000 0000 0000 0000 0000 0000 0000 0000 0006 0000 0000 0000 0000 0000\n0000 0000 0000 0000 0000 0000 0000 0000 0000 0007 0000 0000 0000 0000 0000",
+        "metrics": {
+          "accuracy": 0.0,
+          "error_rate": 1.0,
+          "hanzi_similarity": 0.0,
+          "strict_similarity": 0.0,
+          "punctuation_sensitive_error_rate": 1.0,
+          "ocr_hanzi_count": 0,
+          "gt_hanzi_count": 205
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image": "dataset/images/树人堂读杜诗_页面_061.jpg",
+      "ground_truth": "dataset/ground_truth/树人堂读杜诗_页面_061.docx",
+      "baseline": {
+        "prediction": "通鑑卷二百四\n卷二百四\n紀事本紀\n通鑑杜佑等曰\n紀事本紀",
+        "metrics": {
+          "accuracy": 0.0069,
+          "error_rate": 0.9931,
+          "hanzi_similarity": 0.0099,
+          "strict_similarity": 0.0078,
+          "punctuation_sensitive_error_rate": 0.9922,
+          "ocr_hanzi_count": 24,
+          "gt_hanzi_count": 582
+        }
+      },
+      "lora": {
+        "prediction": "通鑑卷二百四\n卷二百四\n通鑑卷二百四\n卷二百四\n通鑑卷二百四\n卷二百四\n通鑑卷二百四\n卷二百四\n通鑑卷二百四\n卷二百四\n通鑑卷二百四\n卷二百四\n通鑑卷二百四\n卷二百四\n紀李孫書觀音宗",
+        "metrics": {
+          "accuracy": 0.0069,
+          "error_rate": 0.9931,
+          "hanzi_similarity": 0.0091,
+          "strict_similarity": 0.0073,
+          "punctuation_sensitive_error_rate": 0.9927,
+          "ocr_hanzi_count": 77,
+          "gt_hanzi_count": 582
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image": "dataset/images/树人堂读杜诗_页面_022.jpg",
+      "ground_truth": "dataset/ground_truth/树人堂读杜诗_页面_022.docx",
+      "baseline": {
+        "prediction": "卷七 入庭士\n往東郡回華州\n沈氏\n卷七 往東郡回華州\n沈氏\n卷七 往東郡回華州\n沈氏\n卷七 往東郡回華州\n沈氏\n卷七 往東郡回華州\n沈氏\n卷七 往東郡回華州\n沈氏\n卷七 往東郡回華州\n沈氏\n卷七",
+        "metrics": {
+          "accuracy": 0.0564,
+          "error_rate": 0.9436,
+          "hanzi_similarity": 0.0667,
+          "strict_similarity": 0.0604,
+          "punctuation_sensitive_error_rate": 0.9396,
+          "ocr_hanzi_count": 75,
+          "gt_hanzi_count": 195
+        }
+      },
+      "lora": {
+        "prediction": "卷七 歷八十一\n往東都回華州\n乾元 安\n往東都回華州\n乾元 安\n立秋後\n後期 立秋後\n乾元 泰州 昌府 泰州 昌府\n乾元 泰州",
+        "metrics": {
+          "accuracy": 0.0923,
+          "error_rate": 0.9077,
+          "hanzi_similarity": 0.1743,
+          "strict_similarity": 0.1561,
+          "punctuation_sensitive_error_rate": 0.8439,
+          "ocr_hanzi_count": 46,
+          "gt_hanzi_count": 195
+        }
+      }
+    }
+  ]
+}

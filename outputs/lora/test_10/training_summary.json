@@ -1,0 +1,19 @@
+{
+  "train_records": 10,
+  "val_records": 2,
+  "epochs": 1,
+  "steps": 10,
+  "mean_train_loss": 2.8416026830673218,
+  "elapsed_seconds": 18.3,
+  "output_dir": "/mnt/workspace/deepseek_ocr_demo/outputs/lora/test_10",
+  "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj"
+  ],
+  "lora_r": 8,
+  "lora_alpha": 16,
+  "lora_dropout": 0.05,
+  "learning_rate": 0.0001
+}

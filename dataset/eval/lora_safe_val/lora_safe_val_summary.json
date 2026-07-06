@@ -1,0 +1,13 @@
+{
+  "total": 6,
+  "ok": 6,
+  "failed": 0,
+  "elapsed_seconds": 332.4,
+  "mean_accuracy": 0.1351,
+  "mean_error_rate": 0.8649,
+  "mean_hanzi_similarity": 0.2225,
+  "mean_strict_similarity": 0.2082,
+  "model_dir": "/mnt/workspace/deepseek_ocr_demo/DeepSeek-OCR-model",
+  "adapter_dir": "/mnt/workspace/deepseek_ocr_demo/outputs/lora/full_epoch1_safe",
+  "dataset": "/mnt/workspace/deepseek_ocr_demo/dataset/processed/val.jsonl"
+}

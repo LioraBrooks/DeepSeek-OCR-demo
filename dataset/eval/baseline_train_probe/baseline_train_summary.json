@@ -1,0 +1,13 @@
+{
+  "total": 8,
+  "ok": 8,
+  "failed": 0,
+  "elapsed_seconds": 447.1,
+  "mean_accuracy": 0.0158,
+  "mean_error_rate": 0.9842,
+  "mean_hanzi_similarity": 0.0318,
+  "mean_strict_similarity": 0.029,
+  "model_dir": "/mnt/workspace/deepseek_ocr_demo/DeepSeek-OCR-model",
+  "adapter_dir": null,
+  "dataset": "/mnt/workspace/deepseek_ocr_demo/dataset/processed/train.jsonl"
+}

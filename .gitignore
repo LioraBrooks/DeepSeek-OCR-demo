@@ -5,4 +5,6 @@ outputs/history/
 models/
 DeepSeek-OCR-src/
 ground_truth/
-backend_qwen/
+dataset/ground_truth/
+dataset/images/
+

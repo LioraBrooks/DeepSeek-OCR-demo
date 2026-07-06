@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>DeepSeek-OCR 古迹识别</title>
+    <title>DeepSeek-OCR 古籍识别</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,6 +45,10 @@
         button:hover {
             background-color: #0056b3;
         }
+        button:disabled {
+            background-color: #888;
+            cursor: not-allowed;
+        }
         #loading {
             display: none;
             color: #666;
@@ -54,17 +58,17 @@
 </head>
 <body>
     <div class="container">
-        <h2>DeepSeek-OCR 古迹识别</h2>
-        
+        <h2>DeepSeek-OCR 古籍识别</h2>
+
         <input type="file" id="img" accept="image/*" onchange="previewImage(event)">
-        
+
         <div class="preview-area">
             <img id="preview" style="display:none;" alt="图片预览">
         </div>
-        
-        <button onclick="upload()">识别</button>
+
+        <button id="uploadBtn" onclick="upload()">识别</button>
         <div id="loading">识别中，请稍候...</div>
-        
+
         <div class="result-area">
             <strong>识别结果：</strong>
             <pre id="result" style="margin-top: 10px; white-space: pre-wrap;"></pre>
@@ -72,29 +76,34 @@
     </div>
 
     <script>
-        // 图片预览函数
+        const API_BASE = "https://dsw-gateway-cn-shanghai.data.aliyun.com/dsw-752736/ide/proxy/8000";
+
         function previewImage(event) {
             const file = event.target.files[0];
-            const preview = document.getElementById('preview');
-            
+            const preview = document.getElementById("preview");
+
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     preview.src = e.target.result;
-                    preview.style.display = 'block';
-                }
+                    preview.style.display = "block";
+                };
                 reader.readAsDataURL(file);
             } else {
-                preview.style.display = 'none';
-                preview.src = '';
+                preview.style.display = "none";
+                preview.src = "";
             }
         }
 
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
         async function readJsonResponse(response, apiName) {
-            const contentType = response.headers.get('content-type') || '';
+            const contentType = response.headers.get("content-type") || "";
             const bodyText = await response.text();
 
-            if (!contentType.includes('application/json')) {
+            if (!contentType.includes("application/json")) {
                 throw new Error(`${apiName} 返回了非 JSON 响应，HTTP ${response.status}：${bodyText.slice(0, 120)}`);
             }
 
@@ -105,58 +114,76 @@
             return data;
         }
 
-        // 上传识别函数
+        async function pollOcrJob(jobId, resultPre) {
+            const maxAttempts = 180;
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                await sleep(2000);
+
+                const statusRes = await fetch(`${API_BASE}/ocr/status/${jobId}`);
+                const statusData = await readJsonResponse(statusRes, "OCR状态");
+
+                if (statusData.status === "done") {
+                    return statusData;
+                }
+                if (statusData.status === "error") {
+                    throw new Error(statusData.error || "OCR后台任务失败");
+                }
+
+                const elapsed = statusData.elapsed_seconds ?? attempt * 2;
+                resultPre.innerText = `识别任务${statusData.status}，已等待 ${elapsed} 秒...`;
+            }
+
+            throw new Error("OCR任务等待超时，请查看后端终端是否仍在运行");
+        }
+
         async function upload() {
-            const fileInput = document.getElementById('img');
+            const fileInput = document.getElementById("img");
             const file = fileInput.files[0];
-            
+            const loadingDiv = document.getElementById("loading");
+            const resultPre = document.getElementById("result");
+            const uploadBtn = document.getElementById("uploadBtn");
+
             if (!file) {
-                alert('请先选择一张图片！');
+                alert("请先选择一张图片！");
                 return;
             }
-            
+
             const form = new FormData();
             form.append("file", file);
-            
-            // 显示加载状态
-            const loadingDiv = document.getElementById('loading');
-            const resultPre = document.getElementById('result');
-            loadingDiv.style.display = 'block';
-            resultPre.innerText = '识别中...';
-            
+
+            loadingDiv.style.display = "block";
+            uploadBtn.disabled = true;
+            resultPre.innerText = "正在提交识别任务...";
+
             try {
-                // 替换成你的 PAI-DSW 后端转发地址
-                const ocrRes = await fetch("https://dsw-gateway-cn-shanghai.data.aliyun.com/dsw-752736/ide/proxy/8000/ocr", {
+                const ocrRes = await fetch(`${API_BASE}/ocr`, {
                     method: "POST",
                     body: form
                 });
-                
-                const ocrData = await readJsonResponse(ocrRes, 'OCR');
-                //console.log("返回的数据：", data);  // 调试用
-                
-                //调用evaluate
-                const evalRes=await fetch("https://dsw-gateway-cn-shanghai.data.aliyun.com/dsw-752736/ide/proxy/8000/evaluate",{
-                    method:"POST"
+
+                const startData = await readJsonResponse(ocrRes, "OCR");
+                const ocrData = await pollOcrJob(startData.job_id, resultPre);
+
+                resultPre.innerText = "识别完成，正在计算准确率...";
+
+                const evalRes = await fetch(`${API_BASE}/evaluate`, {
+                    method: "POST"
                 });
+                const evalData = await readJsonResponse(evalRes, "评估");
 
-                const evalData=await readJsonResponse(evalRes, '评估');
-
-                // 显示结果
-                // if (data.text) {
-                //     resultPre.innerText = data.text;
-                // } else if (data.result) {
-                //     resultPre.innerText = data.result;
-                // } else {
-                //     resultPre.innerText = JSON.stringify(data, null, 2);
-                // }
-
-                resultPre.innerText = "识别结果: \n"+(ocrData.text ||  "无内容")+"\n\n准确率: "+(evalData.similarity*100).toFixed(2)+"%"+"\n误差率: "+(evalData.error_rate*100).toFixed(2)+"%";
+                resultPre.innerText =
+                    "识别结果: \n" + (ocrData.text || "无内容") +
+                    "\n\n汉字准确率: " + (evalData.accuracy * 100).toFixed(2) + "%" +
+                    "\n汉字误差率: " + (evalData.error_rate * 100).toFixed(2) + "%" +
+                    "\n严格相似度: " + (evalData.strict_similarity * 100).toFixed(2) + "%" +
+                    "\nOCR汉字数/原文汉字数: " + evalData.ocr_hanzi_count + "/" + evalData.gt_hanzi_count;
             } catch (err) {
-                //console.error('上传失败：', error);
-                resultPre.innerText = '错误：' + err.message;
-            } 
-                loadingDiv.style.display = 'none';
-            
+                resultPre.innerText = "错误：" + err.message;
+            } finally {
+                loadingDiv.style.display = "none";
+                uploadBtn.disabled = false;
+            }
         }
     </script>
 </body>

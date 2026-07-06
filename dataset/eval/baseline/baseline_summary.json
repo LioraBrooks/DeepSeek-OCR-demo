@@ -1,0 +1,10 @@
+{
+  "total": 8,
+  "ok": 8,
+  "failed": 0,
+  "elapsed_seconds": 473.6,
+  "mean_accuracy": 0.0905,
+  "mean_error_rate": 0.9095,
+  "mean_hanzi_similarity": 0.1428,
+  "mean_strict_similarity": 0.1306
+}

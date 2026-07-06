@@ -1,0 +1,27 @@
+{
+  "image": "dataset/images/树人堂读杜诗_页面_020.jpg",
+  "baseline": {
+    "prediction": "000七回 遣典 000七回 遣典\n雨過藍端 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典\n至德 000七回 遣典 000七回 遣典\n鄭驍馬地室同欲\n至德 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典\n至德 000七回 遣典 000七回 遣典\n送徐延章許書 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典 000七回 遣典\n至德 000七回 遣典 000七回 遣典 000七回 遣典\n送鄱州安南 000七回 遣典 000七回 遣典 000七回 遣典\n000七回 遣典 000七回 遣典 000七回 遣典",
+    "metrics": {
+      "accuracy": 0.0488,
+      "error_rate": 0.9512,
+      "hanzi_similarity": 0.1037,
+      "strict_similarity": 0.0773,
+      "punctuation_sensitive_error_rate": 0.9227,
+      "ocr_hanzi_count": 142,
+      "gt_hanzi_count": 205
+    }
+  },
+  "lora": {
+    "prediction": "至德\n○送靈州\n○送靈\n○送靈州\n○送靈 州\n○送靈州\n○送 靈州\n○送靈州\n○ 靈州\n○送靈州\n○○○送靈州\n○○○送靈州 ○○○送靈州\n○○○送靈州\n○○○送靈 州\n○○○送靈州\n○○○ 送靈州\n○○○送靈州\n○送靈州\n○○○送靈州\n○送靈州\n○○○送靈州\n○○○○送靈州\n○送靈州\n○○○○送靈州\n○○○○送靈州 ○○○○送靈州\n○○○○送靈州\n○○○○送靈 州\n○○○○送靈州\n○○○○送靈",
+    "metrics": {
+      "accuracy": 0.0634,
+      "error_rate": 0.9366,
+      "hanzi_similarity": 0.0408,
+      "strict_similarity": 0.0844,
+      "punctuation_sensitive_error_rate": 0.9156,
+      "ocr_hanzi_count": 89,
+      "gt_hanzi_count": 205
+    }
+  }
+}

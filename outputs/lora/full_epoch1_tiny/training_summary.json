@@ -1,0 +1,19 @@
+{
+  "train_records": 52,
+  "val_records": 6,
+  "epochs": 1,
+  "steps": 52,
+  "mean_train_loss": 2.776443667136706,
+  "elapsed_seconds": 85.4,
+  "output_dir": "/mnt/workspace/deepseek_ocr_demo/outputs/lora/full_epoch1_tiny",
+  "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj"
+  ],
+  "lora_r": 2,
+  "lora_alpha": 4,
+  "lora_dropout": 0.05,
+  "learning_rate": 5e-06
+}

@@ -1,0 +1,10 @@
+启动：
+source venv_paddle/bin/activate
+cd backend_paddle
+uvicorn app:app --host 127.0.0.1 --port 8001
+
+
+浏览器打开：
+http://127.0.0.1:8001/
+
+即8000端口是Qwen的，8001端口是PaddleOCR的
